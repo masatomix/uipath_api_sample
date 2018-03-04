@@ -1,0 +1,25 @@
+{
+  "name": "uipath_report",
+  "version": "1.0.0",
+  "description": "UiPath Reporting tools",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masatomix/uipath_api_sample.git"
+  },
+  "author": "Masatomi KINO",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/masatomix/uipath_api_sample/issues"
+  },
+  "homepage": "https://github.com/masatomix/uipath_api_sample#readme",
+  "dependencies": {
+    "config": "^1.30.0",
+    "log4js": "^2.5.3",
+    "request": "^2.83.0"
+  }
+}
