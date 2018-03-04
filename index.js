@@ -52,6 +52,7 @@ promise.then(function (access_token) {
     logger.main.info(access_token);
     const servername = config.serverinfo.servername;
 
+
     const log_options =
         {
             uri: 'https://' + servername + '/odata/RobotLogs/UiPath.Server.Configuration.OData.Reports()',
@@ -70,7 +71,8 @@ promise.then(function (access_token) {
         }
     );
 
-    let logs_options =
+
+    const logs_options =
         {
             uri: 'https://' + servername + '/odata/RobotLogs',
             headers: {
@@ -107,6 +109,43 @@ promise.then(function (access_token) {
         }
     );
 
+
+    const auditlogs_options =
+        {
+            uri: 'https://' + servername + '/odata/AuditLogs',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+
+    // ログインが成功したら。
+    request.get(auditlogs_options,
+        function (err, response, body) {
+            if (err) {
+                return console.log(err);
+            }
+            logger.main.info(body);
+            const obj = JSON.parse(body);
+            const logs = obj.value;
+            // console.log(robots);
+            for (let index = 0; index < logs.length; index++) {
+
+                const ServiceName = logs[index].ServiceName;
+                const MethodName = logs[index].MethodName;
+                const Parameters = logs[index].Parameters;
+                const Parameters_obj = JSON.parse(Parameters);
+                const ExecutionTime = logs[index].ExecutionTime;
+                const Id = logs[index].Id;
+
+                const time_moment = moment(ExecutionTime);
+                const day = time_moment.format("YYYY/MM/DD");
+                const time = time_moment.format("HH:mm:ss");
+
+                console.log("%s\t%s\t%s\t%s\t%s\t%s", day, time, ServiceName, MethodName, Id, Parameters);
+                // console.log(Parameters_obj);
+            }
+        }
+    );
 
 });
 
