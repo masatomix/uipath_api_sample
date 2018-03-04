@@ -1,6 +1,6 @@
 {
   "name": "uipath_report",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "UiPath Reporting tools",
   "main": "index.js",
   "scripts": {
