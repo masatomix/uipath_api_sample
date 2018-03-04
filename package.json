@@ -1,6 +1,6 @@
 {
   "name": "uipath_report",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "UiPath Reporting tools",
   "main": "index.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "config": "^1.30.0",
     "log4js": "^2.5.3",
+    "moment": "^2.21.0",
     "request": "^2.83.0"
   }
 }
