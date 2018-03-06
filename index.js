@@ -21,9 +21,13 @@ module.exports.getAccessToken = () => {
     const auth_options =
         {
             uri: 'https://' + servername + '/api/Account/Authenticate',
-            body: 'UsernameOrEmailAddress=' + userid + '&Password=' + password,
+            // body: 'UsernameOrEmailAddress=' + userid + '&Password=' + password,
             headers: {
                 'content-type': 'application/x-www-form-urlencoded'
+            },
+            form: {
+                "UsernameOrEmailAddress": userid,
+                "Password": password
             }
         };
 
@@ -32,11 +36,16 @@ module.exports.getAccessToken = () => {
             function (err, response, body) {
                 if (err) {
                     reject(err);
-                    logger.main.error(err);
                     return;
                 }
 
+
                 const obj = JSON.parse(body);
+                if (!obj.success) {
+                    reject(obj);
+                    return;
+                }
+
                 const access_token = obj.result;
                 resolve(access_token);
             }
@@ -65,7 +74,8 @@ promise.then(function (access_token) {
     request.get(log_options,
         function (err, response, body) {
             if (err) {
-                return console.log(err);
+                logger.main.error(err);
+                return;
             }
             logger.main.info(body);
         }
@@ -84,7 +94,8 @@ promise.then(function (access_token) {
     request.get(logs_options,
         function (err, response, body) {
             if (err) {
-                return console.log(err);
+                logger.main.error(err);
+                return;
             }
             logger.main.info(body);
             const obj = JSON.parse(body);
@@ -122,7 +133,8 @@ promise.then(function (access_token) {
     request.get(auditlogs_options,
         function (err, response, body) {
             if (err) {
-                return console.log(err);
+                logger.main.error(err);
+                return;
             }
             logger.main.info(body);
             const obj = JSON.parse(body);
@@ -147,9 +159,7 @@ promise.then(function (access_token) {
         }
     );
 
+}, function (error) {
+    console.log(error);
+    logger.main.error(error);
 });
-
-
-
-
-
