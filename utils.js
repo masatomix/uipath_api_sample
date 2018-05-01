@@ -212,3 +212,30 @@ module.exports.GetConnectionData = (access_token) => {
     return me.createGetPromise(options);
 };
 
+
+const fs = require('fs');
+const iconv = require('iconv-lite');
+
+module.exports.writeFile = (path, data) => {
+    const encode = iconv.encode(data, 'shift_jis');
+
+    fs.appendFile(path, encode, function (err) {
+        if (err) {
+            throw err;
+        }
+    });
+};
+
+module.exports.deleteFile = (path) => {
+    fs.access(path, function (err) {
+            if (err) {
+                // if (err.code === 'ENOENT') {
+                //     console.log('not exists!!');
+                // }
+            } else {
+                fs.unlinkSync(path);
+            }
+        }
+    );
+};
+
