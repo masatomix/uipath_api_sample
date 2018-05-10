@@ -38,7 +38,6 @@ promise.then((access_token) => {
             logger.main.info(body);
             logger.main.info('Reportログ: END.');
 
-            utils.deleteFile("Reports.csv");
             utils.writeFile("Reports.csv", body);
 
         }
@@ -56,7 +55,7 @@ promise.then((access_token) => {
                 'Authorization': 'Bearer ' + access_token
             },
             qs: {
-                // "$filter": "Level eq 'Info'"
+                "$filter": "Level eq 'Info'"
             }
         };
 
@@ -88,8 +87,13 @@ promise.then((access_token) => {
                 const day = time_moment.format("YYYY/MM/DD");
                 const time = time_moment.format("HH:mm:ss");
 
-                logger.main.info("%s\t%s\t%s\t%s\t%s\t%s\t%s", day, time, Level, WindowsIdentity, RobotName, ProcessName, Message);
-                data += util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s", day, time, Level, WindowsIdentity, RobotName, ProcessName, Message);
+                const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s", day, time, JobKey, Level, WindowsIdentity, RobotName, ProcessName, Message);
+                // logger.main.info(message);
+                console.log(RawMessage);
+
+                const obj = JSON.parse(body);
+
+                data += message;
                 data += '\n';
                 // console.log("%s", JSON.stringify(logs[index]));
                 // console.log(RawMessage);
@@ -97,7 +101,6 @@ promise.then((access_token) => {
             logger.main.info('Robotログ: END.');
 
 
-            utils.deleteFile("RobotLogs.tsv");
             utils.writeFile("RobotLogs.tsv", data);
         }
     );

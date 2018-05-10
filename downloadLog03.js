@@ -43,12 +43,14 @@ promise.then((access_token) => {
 
             logger.main.info('Robotログ: START.');
             let data = '';
-            const header = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                "day", "time", "YYYY", "MM", "DD", "HH", "mm", "ss", "JobKey", "Level", "WindowsIdentity", "RobotName", "ProcessName",
+            const header = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                "TimeStamp", "day", "time", "YYYY", "MM", "DD", "HH", "mm", "ss", "JobKey", "Level", "WindowsIdentity", "RobotName", "ProcessName",
                 "rawMessage.totalExecutionTimeInSeconds", "Message");
             data += header;
             data += "\n";
             for (let index = 0; index < logs.length; index++) {
+
+                logger.main.info(JSON.stringify(logs[index]));
 
                 const Level = logs[index].Level;
                 const WindowsIdentity = logs[index].WindowsIdentity;
@@ -73,25 +75,16 @@ promise.then((access_token) => {
 
                 const rawMessageObj = JSON.parse(RawMessage);
                 if (rawMessageObj.hasOwnProperty('totalExecutionTimeInSeconds')) {
-                    // console.log(rawMessageObj.totalExecutionTimeInSeconds);
-                    // console.log(rawMessageObj.totalExecutionTime);
-                    const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                        day, time, YYYY, MM, DD, HH, mm, ss, JobKey, Level, WindowsIdentity, RobotName, ProcessName,
+                    const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                        TimeStamp, day, time, YYYY, MM, DD, HH, mm, ss, JobKey, Level, WindowsIdentity, RobotName, ProcessName,
                         rawMessageObj.totalExecutionTimeInSeconds, Message);
-                    // logger.main.info(message);
-                    // console.log(RawMessage);
                     data += message;
                     data += '\n';
                 }
-
-
-                // console.log("%s", JSON.stringify(logs[index]));
-                // console.log(RawMessage);
             }
             logger.main.info('Robotログ: END.');
 
 
-            utils.deleteFile("RobotLogs03.tsv");
             utils.writeFile("RobotLogs03.tsv", data);
         }
     );

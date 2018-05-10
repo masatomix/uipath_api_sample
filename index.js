@@ -6,6 +6,7 @@ const me = this;
 const logger = require('./logger');
 const moment = require('moment');
 const utils = require('./utils');
+const util = require('util');
 
 
 // https://orchestrator.uipath.com/v2017.1/reference
@@ -30,6 +31,7 @@ promise.then((access_token) => {
                 console.log("-- getRobot --");
             });
 
+            // Descのカラムを更新してみる
             let robot = robots[i];
             robot.Description = 'update: ' + moment().format("YYYY-MM-DD HH:mm:ssZ");
             utils.putRobot(access_token, robots[i]);
@@ -60,15 +62,6 @@ module.exports.printAssociatedProcesses = (robotKey) => {
     });
 };
 
-// マシン名とマッピングをする
-promise.then((access_token) => {
-    utils.GetMachineNameToLicenseKeyMappings(access_token)
-        .then((obj) => {
-            console.log("-- GetMachineNameToLicenseKeyMappings --");
-            console.log(obj);
-            console.log("-- GetMachineNameToLicenseKeyMappings --");
-        });
-});
 
 // promise.then((access_token) => {
 //     utils.GetConnectionData(access_token)

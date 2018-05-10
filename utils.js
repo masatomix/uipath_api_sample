@@ -7,7 +7,13 @@ const request = require('request');
 const config = require('config');
 
 
-// アクセストークンを取得する
+const fs = require('fs');
+const iconv = require('iconv-lite');
+
+// https://orchestrator.uipath.com/v2017.1/reference
+// https://platform.uipath.com/swagger/ui/index#
+
+// userid/passwordで認証し、アクセストークンを取得する
 module.exports.getAccessToken = () => {
 
     const userid = config.userinfo.UsernameOrEmailAddress;
@@ -71,6 +77,7 @@ module.exports.getRobots = (access_token) => {
 
 
 // ロボットをID(0,1,2....)指定で指定して、返す
+// idは、getRobots(で /odata/Robotsで取得されるRobotデータ) のIdの値(0,1,2...など)
 module.exports.getRobot = (access_token, id) => {
     const servername = config.serverinfo.servername;
     const options =
@@ -109,23 +116,10 @@ module.exports.putRobot = (access_token, robot) => {
     );
 };
 
-// 端末名とライセンスキーのマッピングを取得する
-module.exports.GetMachineNameToLicenseKeyMappings = (access_token) => {
-
-    const servername = config.serverinfo.servername;
-    const options =
-        {
-            method: 'GET',
-            uri: servername + '/odata/Robots/UiPath.Server.Configuration.OData.GetMachineNameToLicenseKeyMappings()',
-            headers: {
-                'Authorization': 'Bearer ' + access_token
-            }
-        };
-    return me.createGetPromise(options);
-};
-
 
 // 端末名とライセンスキーのマッピングを取得する
+// licenseKey: /odata/Robotsで取得されるRobotデータの LicenseKey の値
+// machineName: /odata/Robotsで取得されるRobotデータの MachineName の値
 module.exports.GetRobotMappings = (licenseKey, machineName) => {
     const servername = config.serverinfo.servername;
     const options =
@@ -140,7 +134,25 @@ module.exports.GetRobotMappings = (licenseKey, machineName) => {
     return me.createGetPromise(options);
 };
 
+// 端末名とライセンスキーのマッピング(Keys/Values)を取得する
+// 得られるValuesは、Robot画面で得られる「Key」の値
+// (今のところ使い道がないかな)
+module.exports.GetMachineNameToLicenseKeyMappings = (access_token) => {
 
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            method: 'GET',
+            uri: servername + '/odata/Robots/UiPath.Server.Configuration.OData.GetMachineNameToLicenseKeyMappings()',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+    return me.createGetPromise(options);
+};
+
+// 指定したロボットに紐付いたProcess配列を返す。
+// robotKey: GetRobotMappingsで得られるデータの、robotKeyの値
 module.exports.GetAssociatedProcesses = (robotKey) => {
     const servername = config.serverinfo.servername;
     const options =
@@ -172,7 +184,52 @@ module.exports.GetAssociatedProcesses = (robotKey) => {
     return promise;
 };
 
+// リリースされているProcessの一覧を取得する。
+module.exports.getProcesses = (access_token) => {
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            method: 'GET',
+            uri: servername + '/odata/Releases',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+    return me.createGetPromise(options);
+};
 
+// 指定したパッケージ名とバージョンのnupkgを取得する。
+module.exports.getNupkg = (access_token, packageName, version) => {
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            method: 'GET',
+            uri: servername + "/nuget/Feed/default/Packages(Id='" +
+            encodeURIComponent(packageName) +
+            "',Version='" +
+            version +
+            "')/Download",
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            },
+            encoding: null
+        };
+
+    request(options,
+        function (err, response, body) {
+            if (err) {
+                reject(err);
+                return;
+            }
+            logger.main.info(body);
+            fs.writeFileSync(packageName + '.' + version + ".nupkg.zip", body, 'binary');
+        }
+    );
+
+};
+
+// 指定したURLへアクセスして、戻り電文のJSONデータをオブジェクト化して返す
+// 実際はPromiseを返す。
 module.exports.createGetPromise = (options) => {
     // promiseを返す処理は毎回おなじ。Request処理して、コールバックで値を設定するPromiseを作って返すところを共通化
     const promise = new Promise((resolve, reject) => {
@@ -189,6 +246,43 @@ module.exports.createGetPromise = (options) => {
         );
     });
     return promise;
+};
+
+
+// 指定したパスに、Shift_JISでファイル書き出し
+module.exports.writeFile = (path, data) => {
+    const encode = iconv.encode(data, 'shift_jis');
+
+    fs.writeFile(path, encode, function (err) {
+        if (err) {
+            throw err;
+        }
+    });
+
+    // fs.access(path, function (err) {
+    //         if (err) {
+    //             // ファイルがなかったら、すぐつくる
+    //             if (err.code === 'ENOENT') {
+    //                 fs.appendFile(path, encode, function (error1) {
+    //                     if (error1) {
+    //                         throw error1;
+    //                     }
+    //                 });
+    //             }
+    //         } else {
+    //             // ファイルがあったら、削除して作る
+    //             fs.unlink(path, (error) => {
+    //                 fs.appendFile(path, encode, function (error1) {
+    //                     if (error1) {
+    //                         throw error1;
+    //                     }
+    //                 });
+    //
+    //             });
+    //         }
+    //     }
+    // );
+
 };
 /////////  ココまでは概ね、サンプル作成済み
 
@@ -211,31 +305,3 @@ module.exports.GetConnectionData = (access_token) => {
         };
     return me.createGetPromise(options);
 };
-
-
-const fs = require('fs');
-const iconv = require('iconv-lite');
-
-module.exports.writeFile = (path, data) => {
-    const encode = iconv.encode(data, 'shift_jis');
-
-    fs.appendFile(path, encode, function (err) {
-        if (err) {
-            throw err;
-        }
-    });
-};
-
-module.exports.deleteFile = (path) => {
-    fs.access(path, function (err) {
-            if (err) {
-                // if (err.code === 'ENOENT') {
-                //     console.log('not exists!!');
-                // }
-            } else {
-                fs.unlinkSync(path);
-            }
-        }
-    );
-};
-
