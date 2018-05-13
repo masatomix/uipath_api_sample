@@ -16,23 +16,39 @@ const iconv = require('iconv-lite');
 // userid/passwordで認証し、アクセストークンを取得する
 module.exports.getAccessToken = () => {
 
+    const tenancyName = config.userinfo.tenancyName;
     const userid = config.userinfo.UsernameOrEmailAddress;
     const password = config.userinfo.Password;
     const servername = config.serverinfo.servername;
 
+    logger.main.info(tenancyName);
     logger.main.info(userid);
     logger.main.info(password);
     logger.main.info(servername);
 
     const auth_options =
         {
-            uri: servername + '/api/Account/Authenticate',
+            // uri: servername + '/api/Account/Authenticate',
+            uri: servername + '/api/Account',
+            // headers: {
+            //     'Content-Type': 'application/json',
+            //     'Accept': 'application/json'
+            // },
+            // json: {
+            //     "tenancyName": tenancyName,
+            //     "usernameOrEmailAddress": userid,
+            //     "password": password
+            // }, // jsonで投げると、戻ってきたときのParseが不要になるのか。。。
+
+
             headers: {
-                'content-type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Accept': 'application/json'
             },
             form: {
-                "UsernameOrEmailAddress": userid,
-                "Password": password
+                "tenancyName": tenancyName,
+                "usernameOrEmailAddress": userid,
+                "password": password
             }
         };
 
@@ -45,6 +61,7 @@ module.exports.getAccessToken = () => {
                 }
 
                 const obj = JSON.parse(body);
+                // const obj = body;
                 if (!obj.success) {
                     reject(obj);
                     return;
@@ -184,6 +201,22 @@ module.exports.GetAssociatedProcesses = (robotKey) => {
     return promise;
 };
 
+// 指定したロボットに紐付いたProcess配列を 表示する
+// robotKey: GetRobotMappingsで得られるデータの、robotKeyの値
+module.exports.printAssociatedProcesses = (robotKey) => {
+    me.GetAssociatedProcesses(robotKey).then((processes) => {
+        for (let i = 0; i < processes.length; i++) {
+            console.log("-- GetAssociatedProcesses --");
+            console.log(processes[i]);
+            console.log('processName:', processes[i].processName);
+            console.log('packageId:', processes[i].packageId);
+            console.log('packageVersion:', processes[i].packageVersion);
+            console.log("-- GetAssociatedProcesses --");
+        }
+    });
+};
+
+
 // リリースされているProcessの一覧を取得する。
 module.exports.getProcesses = (access_token) => {
     const servername = config.serverinfo.servername;
@@ -227,6 +260,7 @@ module.exports.getNupkg = (access_token, packageName, version) => {
     );
 
 };
+
 
 // 指定したURLへアクセスして、戻り電文のJSONデータをオブジェクト化して返す
 // 実際はPromiseを返す。
@@ -285,6 +319,77 @@ module.exports.writeFile = (path, data) => {
 
 };
 /////////  ココまでは概ね、サンプル作成済み
+
+module.exports.getRobotLogs = (access_token) => {
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            uri: servername + '/odata/RobotLogs',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            },
+            qs: {
+                "$filter": "Level eq 'Info'"
+            }
+        };
+    return me.createGetPromise(options);
+};
+
+module.exports.getAuditLogs = (access_token) => {
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            uri: servername + '/odata/AuditLogs',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            }
+        };
+    return me.createGetPromise(options);
+};
+
+
+module.exports.postLog = (access_token, logData) => {
+
+    const servername = config.serverinfo.servername;
+    const options =
+        {
+            method: "POST",
+            uri: servername + '/api/logs',
+            headers: {
+                'Authorization': 'Bearer ' + access_token
+            },
+            json: logData
+
+        };
+
+    // ログインが成功したら。
+    request(options,
+        function (err, response, body) {
+            if (err) {
+                logger.main.error(err);
+                return;
+            }
+            logger.main.info('/api/logs START.');
+            logger.main.info('HTTP status:', response.statusCode);
+            logger.main.info(logData);
+            logger.main.info('/api/logs END.');
+
+        }
+    );
+}
+
+
+// module.exports.getReports = (access_token) => {
+//     const servername = config.serverinfo.servername;
+//     const options =
+//         {
+//             uri: servername + '/odata/RobotLogs/UiPath.Server.Configuration.OData.Reports()',
+//             headers: {
+//                 'Authorization': 'Bearer ' + access_token
+//             }
+//         };
+//     return me.createGetPromise(options);
+// };
 
 
 // API呼び出しで成功した実績はなし。
