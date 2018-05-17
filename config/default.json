@@ -1,9 +1,10 @@
 {
   "userinfo": {
-    "UsernameOrEmailAddress": "admin",
-    "Password": "890iop"
+    "tenancyName": "default",
+    "usernameOrEmailAddress": "admin",
+    "password": "890iop"
   },
   "serverinfo": {
-    "servername": "demo.uipath.com"
+    "servername": "http://demo.uipath.com"
   }
 }
