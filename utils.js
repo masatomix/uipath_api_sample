@@ -16,14 +16,14 @@ const iconv = require('iconv-lite');
 // userid/passwordで認証し、アクセストークンを取得する
 module.exports.getAccessToken = () => {
 
-    const tenancyName = config.userinfo.tenancyName;
-    const userid = config.userinfo.UsernameOrEmailAddress;
-    const password = config.userinfo.Password;
+    // const tenancyName = config.userinfo.tenancyName;
+    // const userid = config.userinfo.usernameOrEmailAddress;
+    // const password = config.userinfo.password;
     const servername = config.serverinfo.servername;
 
-    logger.main.info(tenancyName);
-    logger.main.info(userid);
-    logger.main.info(password);
+    logger.main.info(config.userinfo.tenancyName);
+    logger.main.info(config.userinfo.usernameOrEmailAddress);
+    logger.main.info(config.userinfo.password);
     logger.main.info(servername);
 
     const auth_options =
@@ -40,16 +40,11 @@ module.exports.getAccessToken = () => {
             //     "password": password
             // }, // jsonで投げると、戻ってきたときのParseが不要になるのか。。。
 
-
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Accept': 'application/json'
             },
-            form: {
-                "tenancyName": tenancyName,
-                "usernameOrEmailAddress": userid,
-                "password": password
-            }
+            form: config.userinfo
         };
 
     const promise = new Promise((resolve, reject) => {
@@ -72,7 +67,6 @@ module.exports.getAccessToken = () => {
                 resolve(access_token);
             }
         );
-
     });
     return promise;
 };
@@ -91,6 +85,7 @@ module.exports.getRobots = (access_token) => {
         };
     return me.createGetPromise(options);
 };
+
 
 
 // ロボットをID(0,1,2....)指定で指定して、返す

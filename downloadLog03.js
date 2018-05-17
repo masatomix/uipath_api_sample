@@ -43,9 +43,12 @@ promise.then((access_token) => {
 
             logger.main.info('Robotログ: START.');
             let data = '';
-            const header = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                "TimeStamp", "day", "time", "YYYY", "MM", "DD", "HH", "mm", "ss", "JobKey", "Level", "WindowsIdentity", "RobotName", "ProcessName",
-                "rawMessage.totalExecutionTimeInSeconds", "Message");
+            // const header = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+            //     "TimeStamp", "day", "time", "YYYY", "MM", "DD", "HH", "mm", "ss", "JobKey", "Level", "WindowsIdentity", "RobotName", "ProcessName",
+            //     "rawMessage.totalExecutionTimeInSeconds", "Message");
+            const header = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                "TimeStamp", "day", "time", "JobKey", "Level", "WindowsIdentity", "RobotName", "ProcessName",
+                "rawMessage.totalExecutionTimeInSeconds", "Message", "ログ種別");
             data += header;
             data += "\n";
             for (let index = 0; index < logs.length; index++) {
@@ -75,9 +78,15 @@ promise.then((access_token) => {
 
                 const rawMessageObj = JSON.parse(RawMessage);
                 if (rawMessageObj.hasOwnProperty('totalExecutionTimeInSeconds')) {
-                    const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
-                        TimeStamp, day, time, YYYY, MM, DD, HH, mm, ss, JobKey, Level, WindowsIdentity, RobotName, ProcessName,
-                        rawMessageObj.totalExecutionTimeInSeconds, Message);
+                    const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                        TimeStamp, day, time, JobKey, Level, WindowsIdentity, RobotName, ProcessName,
+                        rawMessageObj.totalExecutionTimeInSeconds, Message, "終了");
+                    data += message;
+                    data += '\n';
+                } else if (Message.match(/execution started/)) {
+                    const message = util.format("%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s",
+                        TimeStamp, day, time, JobKey, Level, WindowsIdentity, RobotName, ProcessName,
+                        "0", Message, "開始");
                     data += message;
                     data += '\n';
                 }
